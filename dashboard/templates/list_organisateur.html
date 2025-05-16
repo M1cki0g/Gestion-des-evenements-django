@@ -14,6 +14,9 @@
                         </div>
                     </div>
                 </div>
+                <a href="{% url 'organisateur_add' %}" class="btn btn-primary mb-3">
+    <i class="fas fa-user-plus"></i> Ajouter un organisateur
+</a>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -35,6 +38,16 @@
                                     <td>{{ Organisateurs.email }}</td>
                                     <td>{{ Organisateurs.nom }}</td>
                                     <td>{{ Organisateurs.prenom }}</td>
+                                    <!-- Ajoutez dans le <tr> de chaque organisateur -->
+<td>
+    <a href="{% url 'organisateur_edit' Organisateurs.id %}" class="btn btn-warning btn-sm">
+        <i class="fas fa-edit"></i>
+    </a>
+    <a href="{% url 'organisateur_delete' Organisateurs.id %}" class="btn btn-danger btn-sm"
+   onclick="return confirm('Supprimer cet organisateur ?');">
+    <i class="fas fa-trash-alt"></i>
+</a>
+</td>
                                     {% comment %} <td>
                                         <div class="btn-group">
                                             <a href="{% url 'modifier_utilisateur' utilisateur.id %}" 

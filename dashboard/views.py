@@ -12,6 +12,7 @@ from django.urls import reverse_lazy
 from crud_event.models import evenement,participation,Organisateur
 from django import forms
 from django.contrib import messages
+from crud_event.models import Organisateur
 
 @staff_member_required
 def mon_dashboard(request):
@@ -324,3 +325,34 @@ def download_participants_csv(request):
         ])
 
     return response
+
+
+# Ajouter un organisateur
+class OrganisateurCreateView(CreateView):
+    model = Organisateur
+    fields = ['user', 'nom', 'prenom', 'email']
+    template_name = 'organisateur_form.html'
+    success_url = reverse_lazy('admin_org')
+
+# Modifier un organisateur
+class OrganisateurUpdateView(UpdateView):
+    model = Organisateur
+    fields = ['user', 'nom', 'prenom', 'email']
+    template_name = 'organisateur_form.html'
+    success_url = reverse_lazy('admin_org')
+
+# Supprimer un organisateur
+class OrganisateurDeleteView(DeleteView):
+    model = Organisateur
+    success_url = reverse_lazy('admin_org')
+
+    def get(self, request, *args, **kwargs):
+        # Supprime directement sans confirmation
+        return self.post(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        # Supprime l'objet et redirige sans afficher de template
+        self.object = self.get_object()
+        self.object.delete()
+        messages.success(request, "Organisateur supprimé avec succès.")
+        return redirect(self.success_url)

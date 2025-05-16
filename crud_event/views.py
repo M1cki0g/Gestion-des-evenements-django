@@ -85,6 +85,9 @@ def register_event(request, event_id):
             'event': event,
             'no_places_available': True
         })
+    # Vérifier si l'organisateur de s'inscrire a son propre event
+    if event.organisateur == request.user:
+        return redirect('home')
 
     # Vérifier si l'utilisateur est déjà inscrit
     if participation.objects.filter(participan=request.user, event=event).exists():
@@ -153,6 +156,8 @@ def register_event(request, event_id):
                 payment_method=payment_method,
                 amount=event.price
             )
+
+
 
             # Décrémenter le nombre de places et incrémenter le nombre de participants
             event.nombre_places -= 1
