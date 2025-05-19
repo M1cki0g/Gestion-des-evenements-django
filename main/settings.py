@@ -88,28 +88,20 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
+DATABASES = {
+    'default': {
 
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.environ.get('MYSQLDATABASE', 'evenement'),
-#         'USER': os.environ.get('MYSQLUSER', 'root'),
-#         'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
-#         'HOST': os.environ.get('MYSQLHOST', 'localhost'),
-#         'PORT': os.environ.get('MYSQLPORT', '3306'),
-#         'default': dj_database_url.config(default=os.environ.get('MYSQL_URL'))
-#     }
-#     }
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('MYSQLDATABASE', 'evenement'),
+        'USER': os.environ.get('MYSQLUSER', 'root'),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
+        'HOST': os.environ.get('MYSQLHOST', 'localhost'),
+        'PORT': os.environ.get('MYSQLPORT', '3306'),
+    }
+    }
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': BASE_DIR / 'db.sqlite3',
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get("MYSQL_URL"),
-        conn_max_age=600,
-        engine='django.db.backends.mysql'
-    )
-}
 
 
 # Password validation
