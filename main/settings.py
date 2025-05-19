@@ -90,11 +90,11 @@ DATABASES = {
     'default': {
 
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'evenement',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.environ.get('MYSQLDATABASE', 'evenement'),
+        'USER': os.environ.get('MYSQLUSER', 'root'),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
+        'HOST': os.environ.get('MYSQLHOST', 'localhost'),
+        'PORT': os.environ.get('MYSQLPORT', '3306'),
     }
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': BASE_DIR / 'db.sqlite3',
