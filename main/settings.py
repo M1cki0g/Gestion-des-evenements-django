@@ -89,15 +89,11 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQLDATABASE', 'evenement'),
-        'USER': os.environ.get('MYSQLUSER', 'root'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
-        'HOST': os.environ.get('MYSQLHOST', 'localhost'),
-        'PORT': os.environ.get('MYSQLPORT', '3306'),
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',  # fallback if DATABASE_URL missing locally
+        conn_max_age=600,  # optional, helps with persistent DB connections
+        ssl_require=True   # usually good for production
+    )
     }
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': BASE_DIR / 'db.sqlite3',
