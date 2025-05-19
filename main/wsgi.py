@@ -17,4 +17,4 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
 application = get_wsgi_application() 
 
 # app = application
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", config("DJANGO_SETTINGS_MODULE"))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
