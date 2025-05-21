@@ -49,10 +49,5 @@ urlpatterns = [
     path('valider-evenement/<int:id>/', views.valider_evenement, name='valider_evenement'),  # URL pour la validation
     path('refuser-evenement/<int:id>/', views.refuser_evenement, name='refuser_evenement'),  # URL pour le refus
     path('download-participants/', views.download_participants_csv, name='download_participants_csv'),
- 
-# Organisateur URLs
- path('organisateurs/add/', views.OrganisateurCreateView.as_view(), name='organisateur_add'),
-    path('organisateurs/<int:pk>/edit/', views.OrganisateurUpdateView.as_view(), name='organisateur_edit'),
-    path('organisateurs/<int:pk>/delete/', views.OrganisateurDeleteView.as_view(), name='organisateur_delete'),
-]
+ ]
 
