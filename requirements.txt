@@ -1,6 +1,0 @@
-django
-python-dotenv
-whitenoise
-gunicorn
-mysqlclient
-django-simpleui
