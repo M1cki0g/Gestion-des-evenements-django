@@ -1,0 +1,11 @@
+{
+    "build": {
+        "builder": "NIXPACKS",
+        "buildCommand": "apt-get update && apt-get install -y default-libmysqlclient-dev"
+    },
+    "deploy": {
+        "startCommand": "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn main.wsgi",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+    }
+}
