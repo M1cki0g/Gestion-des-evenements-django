@@ -1,1 +1,1 @@
-web: sh -c 'python manage.py migrate && python manage.py collectstatic --noinput && gunicorn main.wsgi'
+web: DJANGO_SETTINGS_MODULE=main.production gunicorn main.wsgi --log-file -
