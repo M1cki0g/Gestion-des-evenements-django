@@ -93,11 +93,10 @@ DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL', default='sqlite:///db.sqlite3'),
         conn_max_age=600,
-        ssl_require=not DEBUG
+        ssl_require=not DEBUG,
+        options={'sslmode': 'require'} if not DEBUG else {}
     )
 }
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
 
 
 

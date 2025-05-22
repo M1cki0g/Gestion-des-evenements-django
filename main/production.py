@@ -21,6 +21,7 @@ SECURE_HSTS_PRELOAD = True
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
+    # For PostgreSQL on Railway
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
@@ -28,7 +29,12 @@ if DATABASE_URL:
             ssl_require=True,
         )
     }
+    # Enable SSL for PostgreSQL
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require'
+    }
 else:
+    # Local SQLite configuration (no SSL support needed)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

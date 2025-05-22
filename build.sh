@@ -1,1 +1,4 @@
-#!/bin/bashpip install -r requirements.txtpython manage.py collectstatic --no-inputpython manage.py migrate
+#!/bin/bash
+pip install -r requirements.txt
+python manage.py collectstatic --no-input
+python manage.py migrate
