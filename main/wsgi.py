@@ -8,11 +8,13 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/wsgi/
 """
 
 import os
+from decouple import config
+
 from django.core.wsgi import get_wsgi_application
 
-if os.environ.get('RAILWAY_ENVIRONMENT') == 'production':
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.production')
-else:
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
 
-application = get_wsgi_application()
+application = get_wsgi_application() 
+
+# app = application
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
