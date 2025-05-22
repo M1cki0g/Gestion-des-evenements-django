@@ -23,16 +23,13 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
     # For PostgreSQL on Railway
     DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True,
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600
         )
     }
     # Enable SSL for PostgreSQL
-    DATABASES['default']['OPTIONS'] = {
-        'sslmode': 'require'
-    }
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 else:
     # Local SQLite configuration (no SSL support needed)
     DATABASES = {
