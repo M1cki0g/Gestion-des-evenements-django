@@ -22,9 +22,9 @@ import os
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('gestion_des_evenements.urls')),
     path('', include('crud_event.urls')),
-    path('', include('dashboard.urls')),
+    path('dashboard/', include('dashboard.urls')),
+    path('accounts/', include('gestion_des_evenements.urls')),
 ] 
 
 if settings.DEBUG:
