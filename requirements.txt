@@ -9,4 +9,5 @@ django-simpleui==2024.3.25
 reportlab==4.1.0
 setuptools>=65.5.1
 wheel>=0.40.0
+qrcode==7.4.2
 
