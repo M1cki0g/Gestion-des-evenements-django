@@ -1,11 +1,10 @@
-from pyexpat.errors import messages
-from django.shortcuts import render,HttpResponse
-# from .models import evenement
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.views.defaults import page_not_found, server_error, permission_denied, bad_request
 from .models import CustomUserCreationForm  # Importez le formulaire personnalisé
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
@@ -114,6 +113,19 @@ def contact_us(request):
         return redirect('home')  # Redirige vers la page d'accueil après l'envoi
 
     return render(request, 'home.html')
+
+
+def handler404(request, exception):
+    return render(request, '404.html', status=404)
+
+def handler500(request):
+    return render(request, '500.html', status=500)
+
+def handler403(request, exception):
+    return render(request, '403.html', status=403)
+
+def handler400(request, exception):
+    return render(request, '400.html', status=400)
 
 
 
