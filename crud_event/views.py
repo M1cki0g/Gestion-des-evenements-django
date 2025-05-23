@@ -56,40 +56,80 @@ def creer_evenement(request):
                 event.organisateur = request.user
                 event.organisateur_name = request.user.username
                 
+                # Auto-validate if the user is admin/staff
+                event.is_validated = True if request.user.is_staff else False
+                
                 # Vérifier si une URL d'image externe a été fournie
                 image_url = form.cleaned_data.get('image_url')
                 if image_url:
                     logger.info(f"External image URL provided: {image_url}")
                     event.image_url = image_url
-                    # Si une URL d'image est fournie, on peut directement sauvegarder l'événement
-                    event.save()
-                    logger.info(f"Event created with ID: {event.id} and external image URL")
-                else:
-                    # Handle image upload safely if no external URL was provided
-                    if 'image' in request.FILES:
-                        logger.info("Processing uploaded image")
+                    # Pas de conversion en base64 nécessaire pour une URL externe
+                
+                # Gérer le téléchargement d'image
+                if 'image' in request.FILES:
+                    logger.info("Processing uploaded image")
+                    uploaded_image = request.FILES['image']
+                    logger.info(f"Image: {uploaded_image.name}, size: {uploaded_image.size}")
+                    
+                    # Convertir l'image en base64 pour la stocker dans la base de données
+                    try:
+                        import base64
+                        from io import BytesIO
+                        from PIL import Image
+                        import sys
                         
-                        # Aucune raison de définir image=None comme avant
-                        # Laissons Django gérer directement l'image téléchargée
-                        event.image = request.FILES['image']
-                        logger.info(f"Image assigned: {event.image.name}")
+                        # Ouvrir l'image avec PIL
+                        img = Image.open(uploaded_image)
                         
-                        # Auto-validate if the user is admin/staff
-                        event.is_validated = True if request.user.is_staff else False
+                        # Redimensionner l'image pour réduire sa taille si nécessaire
+                        max_size = (800, 800)  # Taille maximale
+                        img.thumbnail(max_size, Image.LANCZOS)
                         
-                        # Sauvegarder l'événement avec l'image
-                        event.save()
-                        logger.info(f"Event created with ID: {event.id} and uploaded image")
-                    else:
-                        # Ni image ni URL d'image fournie
-                        logger.info("No image or image URL provided")
+                        # Convertir en JPEG
+                        if img.mode != 'RGB':
+                            img = img.convert('RGB')
                         
-                        # Auto-validate if the user is admin/staff
-                        event.is_validated = True if request.user.is_staff else False
+                        # Sauvegarder en JPEG dans un buffer
+                        buffer = BytesIO()
+                        img.save(buffer, format="JPEG", quality=85)
+                        buffer.seek(0)
                         
-                        # Sauvegarder l'événement sans image
-                        event.save()
-                        logger.info(f"Event created with ID: {event.id} without image")
+                        # Convertir en base64
+                        img_str = base64.b64encode(buffer.read()).decode('utf-8')
+                        
+                        # Stocker dans le champ image_base64
+                        event.image_base64 = img_str
+                        logger.info(f"Image converted to base64, size: {sys.getsizeof(img_str)} bytes")
+                        
+                        # Conserver également le champ image pour compatibilité
+                        event.image = uploaded_image
+                    except Exception as e:
+                        logger.error(f"Error converting image to base64: {str(e)}")
+                        import traceback
+                        logger.error(traceback.format_exc())
+                
+                # Sauvegarder l'événement
+                event.save()
+                logger.info(f"Event saved with ID: {event.id}")
+                
+                # Log détaillé des champs d'image après sauvegarde
+                log_fields = []
+                if event.image_base64:
+                    log_fields.append("image_base64")
+                if event.image_url:
+                    log_fields.append("image_url")
+                if event.image:
+                    log_fields.append("image")
+                logger.info(f"Event has the following image fields set: {', '.join(log_fields)}")
+                
+                # Si aucun champ d'image n'est défini, utiliser l'image par défaut
+                if not log_fields:
+                    logger.info("No image fields set, will use default image")
+                
+                # Tester get_image_url
+                image_url = event.get_image_url()
+                logger.info(f"Final image URL: {image_url[:50]}..." if len(image_url) > 50 else f"Final image URL: {image_url}")
                 
                 # Après sauvegarde, vérifier que tout s'est bien passé
                 from crud_event.models import evenement

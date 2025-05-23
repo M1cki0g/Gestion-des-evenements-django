@@ -36,6 +36,8 @@ class evenement(models.Model):
     image = models.ImageField(upload_to=file_path, blank=True, null=True)
     # Réactivation du champ image_url comme solution de contournement pour Railway
     image_url = models.URLField(max_length=500, blank=True, null=True, help_text="URL d'image externe (alternative au téléchargement)")
+    # Champ pour stocker l'image en base64 directement dans la base de données
+    image_base64 = models.TextField(blank=True, null=True, help_text="Image encodée en base64")
     date = models.DateTimeField()
     lieu = models.CharField(max_length=200)
     nombre_places = models.IntegerField(default=2)
@@ -60,12 +62,18 @@ class evenement(models.Model):
         # Log de débogage pour comprendre ce qui se passe
         logger.info(f"get_image_url called for event {self.id}: {self.nom_event}")
         
-        # 1. Priorité 1: Vérifier si une URL d'image externe a été fournie
+        # 1. Priorité 1: Vérifier si l'image est stockée en base64 dans la base de données
+        if hasattr(self, 'image_base64') and self.image_base64:
+            logger.info("Using base64 image from database")
+            # Le contenu base64 est déjà prêt à être utilisé dans un tag <img>
+            return f"data:image/jpeg;base64,{self.image_base64}"
+        
+        # 2. Priorité 2: Vérifier si une URL d'image externe a été fournie
         if hasattr(self, 'image_url') and self.image_url:
             logger.info(f"Using external image URL: {self.image_url}")
             return self.image_url
         
-        # 2. Priorité 2: Essayer d'utiliser l'image téléchargée
+        # 3. Priorité 3: Essayer d'utiliser l'image téléchargée
         if self.image:
             logger.info(f"Event has image attribute: {self.image}")
             try:
@@ -98,7 +106,7 @@ class evenement(models.Model):
         except Exception as e:
             logger.error(f"Error checking S3 settings: {str(e)}")
         
-        # 3. Priorité 3: Utiliser une image par défaut basée sur la catégorie
+        # 4. Priorité 4: Utiliser une image par défaut basée sur la catégorie
         default_url = default_images.get(self.categorie, default_images['default'])
         logger.info(f"Using default image: {default_url}")
         return default_url
