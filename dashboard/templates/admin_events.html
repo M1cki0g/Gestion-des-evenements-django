@@ -43,12 +43,10 @@
                             <td>{{ event.id }}</td>
                             <td>
                                 {% if event.image %}
-                                <!-- Prioritize the user's image with improved error handling -->
                                 <img 
                                     src="{{ event.image.url }}" 
                                     alt="{{ event.nom_event }}" 
                                     class="event-thumbnail"
-                                    onerror="console.log('Using fallback for admin view: '+this.alt); this.src='https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/event_web.jpg'"
                                 >
                                 {% else %}
                                 <div class="event-thumbnail-placeholder">

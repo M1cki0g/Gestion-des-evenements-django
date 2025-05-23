@@ -7,6 +7,7 @@ import os
 import sys
 import logging
 import traceback
+import time
 import django
 from waitress import serve
 from django.core.management import execute_from_command_line
@@ -94,17 +95,52 @@ except Exception as e:
     logger.error(traceback.format_exc())
     # Continue despite static file errors
 
-# Create media directory
+# Create media directory with special handling for Railway's ephemeral filesystem
 try:
     from django.conf import settings
+    # Ensure media directory exists
     os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
     logger.info(f"Created media directory at {settings.MEDIA_ROOT}")
-    # Ensure it's writable
+    
+    # Create a directory in /tmp which persists during the current session
+    persistent_media_dir = '/tmp/toul_events_media'
+    os.makedirs(persistent_media_dir, exist_ok=True)
+    
+    # Create symlink from media directory to persistent directory for each subdirectory
+    # This helps preserve uploaded files during the session
+    for item in ['uploads']:
+        source_dir = os.path.join(settings.MEDIA_ROOT, item)
+        target_dir = os.path.join(persistent_media_dir, item)
+        
+        # Create subdirectories if they don't exist
+        os.makedirs(target_dir, exist_ok=True)
+        
+        # If the source exists but is not a symlink, back it up
+        if os.path.exists(source_dir) and not os.path.islink(source_dir):
+            backup_dir = f"{source_dir}_backup_{int(time.time())}"
+            os.rename(source_dir, backup_dir)
+            logger.info(f"Backed up {source_dir} to {backup_dir}")
+        
+        # Remove existing symlink if any
+        if os.path.islink(source_dir):
+            os.unlink(source_dir)
+        
+        # Create symlink from media/uploads to persistent directory
+        os.symlink(target_dir, source_dir)
+        logger.info(f"Created symlink from {source_dir} to {target_dir}")
+    
+    # Ensure the media directory is writable
     test_file = os.path.join(settings.MEDIA_ROOT, 'test.txt')
     with open(test_file, 'w') as f:
         f.write('Test file to ensure media directory is writable')
     os.remove(test_file)
     logger.info("Media directory is writable")
+    
+    # Print out all files in the persistent media directory
+    for root, dirs, files in os.walk(persistent_media_dir):
+        for file in files:
+            logger.info(f"Found file: {os.path.join(root, file)}")
+            
 except Exception as e:
     logger.error(f"Error setting up media directory: {e}")
     logger.error(traceback.format_exc())

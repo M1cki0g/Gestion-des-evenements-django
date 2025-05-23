@@ -150,20 +150,10 @@
       <div class="event-item">
         <div class="event-card">
           <div class="event-image">
-            {% if event.image %}
-            <!-- If user uploaded image exists, try to use it with fallback -->
-            <img 
-              src="{{ event.image.url }}" 
-              alt="{{ event.nom_event }}" 
-              onerror="this.src='https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/event_web.jpg'" 
-            />
+            {% if event.image and event.image.url %}
+              <img src="{{ event.image.url }}" alt="{{ event.nom_event }}" />
             {% else %}
-            <!-- If no image was uploaded, use default -->
-            <img 
-              src="{% static 'images/event_default.jpg' %}" 
-              alt="{{ event.nom_event }}" 
-              onerror="this.src='https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/event_web.jpg'" 
-            />
+              <img src="{% static 'images/event_web.jpg' %}" alt="{{ event.nom_event }}" />
             {% endif %}
           </div>
           
