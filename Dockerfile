@@ -22,7 +22,7 @@ COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
 # Create startup script
-RUN echo '#!/bin/bash\npython manage.py collectstatic --noinput\ngunicorn main.wsgi:application --bind 0.0.0.0:8000' > /app/start.sh \
+RUN echo '#!/bin/bash\npython manage.py collectstatic --noinput\npython manage.py migrate --noinput\ngunicorn main.wsgi:application --bind 0.0.0.0:8080' > /app/start.sh \
     && chmod +x /app/start.sh
 
 # Copy project (after creating startup script)
