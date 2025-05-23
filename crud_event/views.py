@@ -34,42 +34,89 @@ from PIL import Image as PILImage
 
 
 
+import logging
+logger = logging.getLogger(__name__)
+
 @login_required
 def creer_evenement(request):
+    logger.info(f"User {request.user.username} is attempting to create an event")
+    
     if request.method == 'POST':
+        logger.info("Received POST request for event creation")
+        logger.info(f"POST data: {request.POST}")
+        logger.info(f"FILES data: {request.FILES}")
+        
+        # Skip file upload temporarily to see if that's the issue
         form = EvenementForm(request.POST, request.FILES)
+        
         if form.is_valid():
+            logger.info("Form is valid, proceeding with event creation")
             try:
+                # Create event without saving to database yet
                 event = form.save(commit=False)
                 event.organisateur = request.user
                 event.organisateur_name = request.user.username
                 
-                # Gestion de l'image
+                # Handle image upload safely
                 if 'image' in request.FILES:
-                    # Assurez-vous que le répertoire existe
+                    # Make sure the upload directory exists
                     from django.conf import settings
                     import os
                     upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
                     os.makedirs(upload_dir, exist_ok=True)
+                    logger.info(f"Upload directory created at {upload_dir}")
+                    
+                    # Process the image separately
+                    image_file = request.FILES['image']
+                    logger.info(f"Processing image: {image_file.name}, size: {image_file.size}")
+                    
+                    # Set image to None initially and we'll handle it after saving
+                    # This helps avoid DB errors
+                    temp_image = image_file
+                    event.image = None
+                else:
+                    logger.info("No image uploaded with the event")
+                    temp_image = None
                 
-                # Auto-valider si l'utilisateur est admin/staff
+                # Auto-validate if the user is admin/staff
                 event.is_validated = True if request.user.is_staff else False
-                event.save()
                 
-                # Message de succès
+                # Save without the image first
+                logger.info("Saving event without image first")
+                event.save()
+                logger.info(f"Event created with ID: {event.id}")
+                
+                # Now try to add the image if we have one
+                if temp_image:
+                    try:
+                        logger.info("Attempting to save image")
+                        # Get the event we just saved
+                        from crud_event.models import evenement
+                        updated_event = evenement.objects.get(id=event.id)
+                        updated_event.image = temp_image
+                        updated_event.save()
+                        logger.info("Image saved successfully")
+                    except Exception as img_error:
+                        logger.error(f"Error saving image: {img_error}")
+                        # Continue anyway since the event is created
+                
+                # Success message
                 if request.user.is_staff:
                     messages.success(request, "Votre événement a été créé avec succès.")
                 else:
                     messages.success(request, "Votre événement a été créé avec succès, en attente de validation par l'administrateur.")
                 
+                logger.info("Redirecting to creerEvent page")
                 return redirect('creerEvent')
             except Exception as e:
-                print(f"Erreur lors de la création de l'événement: {e}")
+                logger.error(f"Error creating event: {e}")
+                logger.exception("Detailed traceback:")
                 messages.error(request, f"Une erreur s'est produite: {e}")
         else:
-            print(f"Formulaire non valide: {form.errors}")
+            logger.error(f"Form validation failed: {form.errors}")
             messages.error(request, f"Données invalides: {form.errors}")
     else:
+        logger.info("Displaying empty event form")
         form = EvenementForm()
 
     return render(request, 'creerEvent.html', {'form': form})

@@ -127,18 +127,41 @@ def save(self, commit=True):
 
 
 class EvenementForm(forms.ModelForm):
+    # Explicitly define image field to make it truly optional
+    image = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        help_text="Image de l'événement (optionnel)"
+    )
+    
     class Meta:
         model = evenement
-        exclude = ['organisateur', 'organisateur_name', 'is_validated','nombre_participants']
+        exclude = ['organisateur', 'organisateur_name', 'is_validated', 'nombre_participants']
         widgets = {
-            'date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'nombre_places': forms.NumberInput(attrs={'min': '2'}),
-                  }
+            'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'nombre_places': forms.NumberInput(attrs={'min': '2', 'class': 'form-control'}),
+            'nom_event': forms.TextInput(attrs={'class': 'form-control'}),
+            'lieu': forms.TextInput(attrs={'class': 'form-control'}),
+            'categorie': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
+            'image_url': forms.URLInput(attrs={'class': 'form-control'}),
+        }
+    
     def clean_nombre_places(self):
         nombre_places = self.cleaned_data.get('nombre_places')
         if nombre_places < 2:
             raise forms.ValidationError("Le nombre minimum de places doit être 2")
         return nombre_places
+        
+    def clean(self):
+        # Custom validation to handle the complete form
+        cleaned_data = super().clean()
+        # We'll accept either an image file or an image URL
+        if not cleaned_data.get('image') and not cleaned_data.get('image_url'):
+            # It's okay to have neither - we'll use a default
+            pass
+        return cleaned_data
 
 
 
