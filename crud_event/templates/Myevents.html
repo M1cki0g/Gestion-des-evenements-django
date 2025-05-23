@@ -33,10 +33,11 @@
                 <div class="event-card">
                     <div class="event-image">
                         {% if event.image %}
+                        <!-- Prioritize the user's image with improved error handling -->
                         <img 
                             src="{{ event.image.url }}" 
                             alt="{{ event.nom_event }}" 
-                            onerror="this.src='https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/event_web.jpg'"
+                            onerror="console.log('Using fallback for: '+this.alt); this.src='https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/event_web.jpg'"
                         />
                         {% endif %}
                         <div class="event-status {% if event.is_validated %}status-validated{% else %}status-pending{% endif %}">
