@@ -8,5 +8,6 @@ python-decouple==3.6
 # Use psycopg2 from apt instead of binary package
 psycopg2==2.8.6
 
-# Server
+# Servers
 waitress==2.1.2
+gunicorn==20.0.4  # Added back for Railway compatibility
