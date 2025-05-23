@@ -24,16 +24,17 @@ COPY . /app/
 # Create static files directory
 RUN mkdir -p /app/staticfiles
 
+# Write a simpler startup script
+RUN echo '#!/bin/sh\n\
+echo "Starting application..."\n\
+echo "Collecting static files..."\n\
+COLLECTSTATIC_DRYRUN=1 python manage.py collectstatic --noinput || true\n\
+echo "Starting Gunicorn..."\n\
+exec gunicorn main.wsgi:application --bind=0.0.0.0:8080 --log-file=-' > /app/entrypoint.sh \
+    && chmod +x /app/entrypoint.sh
+
 # Expose port
 EXPOSE 8080
 
-# Create a runtime script
-RUN echo '#!/bin/bash\n\
-echo "Collecting static files..."\n\
-COLLECTSTATIC_DRYRUN=1 python manage.py collectstatic --noinput\n\
-echo "Starting Gunicorn..."\n\
-python -m gunicorn.app.wsgiapp main.wsgi:application --bind=0.0.0.0:8080' > /app/run.sh \
-    && chmod +x /app/run.sh
-
 # Run the script at startup
-CMD ["/app/run.sh"]
+CMD ["/app/entrypoint.sh"]
