@@ -24,17 +24,8 @@ COPY . /app/
 # Create static files directory
 RUN mkdir -p /app/staticfiles
 
-# Write a simpler startup script
-RUN echo '#!/bin/sh\n\
-echo "Starting application..."\n\
-echo "Collecting static files..."\n\
-COLLECTSTATIC_DRYRUN=1 python manage.py collectstatic --noinput || true\n\
-echo "Starting server..."\n\
-python server.py' > /app/entrypoint.sh \
-    && chmod +x /app/entrypoint.sh
-
 # Expose port
 EXPOSE 8080
 
-# Run the script at startup
-CMD ["/app/entrypoint.sh"]
+# Run the server directly
+CMD ["python", "server.py"]
