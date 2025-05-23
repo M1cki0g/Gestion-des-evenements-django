@@ -59,13 +59,6 @@ def creer_evenement(request):
                 # Auto-validate if the user is admin/staff
                 event.is_validated = True if request.user.is_staff else False
                 
-                # Vérifier si une URL d'image externe a été fournie
-                image_url = form.cleaned_data.get('image_url')
-                if image_url:
-                    logger.info(f"External image URL provided: {image_url}")
-                    event.image_url = image_url
-                    # Pas de conversion en base64 nécessaire pour une URL externe
-                
                 # Gérer le téléchargement d'image
                 if 'image' in request.FILES:
                     logger.info("Processing uploaded image")
@@ -117,8 +110,6 @@ def creer_evenement(request):
                 log_fields = []
                 if event.image_base64:
                     log_fields.append("image_base64")
-                if event.image_url:
-                    log_fields.append("image_url")
                 if event.image:
                     log_fields.append("image")
                 logger.info(f"Event has the following image fields set: {', '.join(log_fields)}")

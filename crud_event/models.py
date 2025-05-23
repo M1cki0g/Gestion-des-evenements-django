@@ -34,8 +34,6 @@ class evenement(models.Model):
     id = models.AutoField(primary_key=True)
     nom_event = models.CharField(max_length=200)
     image = models.ImageField(upload_to=file_path, blank=True, null=True)
-    # Réactivation du champ image_url comme solution de contournement pour Railway
-    image_url = models.URLField(max_length=500, blank=True, null=True, help_text="URL d'image externe (alternative au téléchargement)")
     # Champ pour stocker l'image en base64 directement dans la base de données
     image_base64 = models.TextField(blank=True, null=True, help_text="Image encodée en base64")
     date = models.DateTimeField()
@@ -68,12 +66,7 @@ class evenement(models.Model):
             # Le contenu base64 est déjà prêt à être utilisé dans un tag <img>
             return f"data:image/jpeg;base64,{self.image_base64}"
         
-        # 2. Priorité 2: Vérifier si une URL d'image externe a été fournie
-        if hasattr(self, 'image_url') and self.image_url:
-            logger.info(f"Using external image URL: {self.image_url}")
-            return self.image_url
-        
-        # 3. Priorité 3: Essayer d'utiliser l'image téléchargée
+        # 2. Priorité 2: Essayer d'utiliser l'image téléchargée
         if self.image:
             logger.info(f"Event has image attribute: {self.image}")
             try:
@@ -203,17 +196,9 @@ class EvenementForm(forms.ModelForm):
         help_text="Image de l'événement (optionnel)"
     )
     
-    # Ajouter un champ image_url comme alternative au téléchargement d'image
-    image_url = forms.URLField(
-        required=False,
-        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://exemple.com/image.jpg'}),
-        help_text="Alternative: URL d'une image en ligne (laissez vide pour utiliser le téléchargement ou une image par défaut)"
-    )
-    
     class Meta:
         model = evenement
-        # Inclure image_url dans les champs du formulaire
-        fields = ['nom_event', 'image', 'image_url', 'date', 'lieu', 'nombre_places', 'categorie', 'description', 'price']
+        fields = ['nom_event', 'image', 'date', 'lieu', 'nombre_places', 'categorie', 'description', 'price']
         widgets = {
             'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'nombre_places': forms.NumberInput(attrs={'min': '2', 'class': 'form-control'}),
