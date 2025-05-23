@@ -6,6 +6,10 @@ Uses Django's built-in WSGI handler with waitress server.
 import os
 import sys
 import logging
+import traceback
+import django
+from waitress import serve
+from django.core.management import execute_from_command_line
 
 # Configure logging
 logging.basicConfig(
