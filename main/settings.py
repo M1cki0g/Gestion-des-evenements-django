@@ -99,17 +99,8 @@ DATABASES = {
     )
 }
 
-# Original MySQL configuration - commented out
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'evenement',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-# }
+# Database configuration for Railway
+# No MySQL-specific configuration needed
 
 
 # Password validation
