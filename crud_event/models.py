@@ -34,7 +34,8 @@ class evenement(models.Model):
     id = models.AutoField(primary_key=True)
     nom_event = models.CharField(max_length=200)
     image = models.ImageField(upload_to=file_path, blank=True, null=True)
-    image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Optional external image URL")
+    # Suppression temporaire de image_url pour résoudre l'erreur en production
+    # image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Optional external image URL")
     date = models.DateTimeField()
     lieu = models.CharField(max_length=200)
     nombre_places = models.IntegerField(default=2)
@@ -136,7 +137,8 @@ class EvenementForm(forms.ModelForm):
     
     class Meta:
         model = evenement
-        exclude = ['organisateur', 'organisateur_name', 'is_validated', 'nombre_participants']
+        # Exclude image_url since it's not in the database yet
+        fields = ['nom_event', 'image', 'date', 'lieu', 'nombre_places', 'categorie', 'description', 'price']
         widgets = {
             'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'nombre_places': forms.NumberInput(attrs={'min': '2', 'class': 'form-control'}),
@@ -145,7 +147,6 @@ class EvenementForm(forms.ModelForm):
             'categorie': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
-            'image_url': forms.URLInput(attrs={'class': 'form-control'}),
         }
     
     def clean_nombre_places(self):
@@ -153,15 +154,6 @@ class EvenementForm(forms.ModelForm):
         if nombre_places < 2:
             raise forms.ValidationError("Le nombre minimum de places doit être 2")
         return nombre_places
-        
-    def clean(self):
-        # Custom validation to handle the complete form
-        cleaned_data = super().clean()
-        # We'll accept either an image file or an image URL
-        if not cleaned_data.get('image') and not cleaned_data.get('image_url'):
-            # It's okay to have neither - we'll use a default
-            pass
-        return cleaned_data
 
 
 

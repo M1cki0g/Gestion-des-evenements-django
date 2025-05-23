@@ -90,14 +90,35 @@ def creer_evenement(request):
                 if temp_image:
                     try:
                         logger.info("Attempting to save image")
-                        # Get the event we just saved
+                        # Try a more direct approach for image saving
+                        from django.core.files.storage import default_storage
+                        from django.core.files.base import ContentFile
+                        import os
+                        from django.conf import settings
+                        
+                        # Make sure uploads directory exists
+                        upload_path = os.path.join(settings.MEDIA_ROOT, 'uploads')
+                        os.makedirs(upload_path, exist_ok=True)
+                        
+                        # Create a file name based on time and original filename
+                        from datetime import datetime
+                        time_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                        safe_filename = f"{time_str}_{temp_image.name}"
+                        file_path = os.path.join('uploads', safe_filename)
+                        
+                        # Save the file using Django's storage system
+                        path = default_storage.save(file_path, ContentFile(temp_image.read()))
+                        logger.info(f"Image saved at: {path}")
+                        
+                        # Update the event with the new image path
                         from crud_event.models import evenement
                         updated_event = evenement.objects.get(id=event.id)
-                        updated_event.image = temp_image
+                        updated_event.image = path
                         updated_event.save()
-                        logger.info("Image saved successfully")
+                        logger.info("Event updated with image path")
                     except Exception as img_error:
                         logger.error(f"Error saving image: {img_error}")
+                        logger.exception("Full image error traceback:")
                         # Continue anyway since the event is created
                 
                 # Success message
