@@ -1,20 +1,13 @@
-# Core packages
-Django==4.2.10
+# Essential packages only
+Django==3.2.19
+gunicorn==20.1.0
+dj-database-url==0.5.0
+python-dotenv==0.19.2
+whitenoise==5.3.0
+psycopg2-binary==2.9.5
 
-# Database adapters
-psycopg2-binary==2.9.9
+# Keep only the UI package that's already in use
+django-simpleui==2022.12.22
 
-# Deployment tools
-whitenoise==6.5.0
-gunicorn==21.2.0
-dj-database-url==2.1.0
-python-dotenv==1.0.0
-
-# Image processing
-Pillow==10.0.1
-
-# Admin UI
-django-simpleui==2023.3.1
-
-# Optional MySQL support (commented out to avoid build issues)
-# mysqlclient==2.2.0
+# Image processing - add back after successful deployment
+# Pillow==9.5.0
