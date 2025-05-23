@@ -94,6 +94,22 @@ except Exception as e:
     logger.error(traceback.format_exc())
     # Continue despite static file errors
 
+# Create media directory
+try:
+    from django.conf import settings
+    os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+    logger.info(f"Created media directory at {settings.MEDIA_ROOT}")
+    # Ensure it's writable
+    test_file = os.path.join(settings.MEDIA_ROOT, 'test.txt')
+    with open(test_file, 'w') as f:
+        f.write('Test file to ensure media directory is writable')
+    os.remove(test_file)
+    logger.info("Media directory is writable")
+except Exception as e:
+    logger.error(f"Error setting up media directory: {e}")
+    logger.error(traceback.format_exc())
+    # Continue despite media directory errors
+
 # Define a simple health check view
 def health_check(environ, start_response):
     status = '200 OK'
