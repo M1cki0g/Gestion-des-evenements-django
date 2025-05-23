@@ -90,16 +90,11 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 # Database configuration
-# Use Railway PostgreSQL in production, fallback to SQLite for development
+# Simple configuration that works with Railway and older dj-database-url versions
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'))
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
-        conn_max_age=600,
-    )
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 }
-
-# Database configuration for Railway
-# No MySQL-specific configuration needed
 
 
 # Password validation
