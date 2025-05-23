@@ -1,37 +1,34 @@
-FROM python:3.9
+FROM python:3.9-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=main.settings
 
 WORKDIR /app
 
-# Install system dependencies including PostgreSQL development headers
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
     libpq-dev \
-    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
-
-# Upgrade pip
-RUN /usr/local/bin/python -m pip install --upgrade pip setuptools wheel
 
 # Install Python dependencies
 COPY requirements.txt /app/
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy project files
+# Copy project
 COPY . /app/
-
-# Make the startup script executable
-RUN chmod +x /app/start.sh
 
 # Create static files directory
 RUN mkdir -p /app/staticfiles
 
-# Expose port
-EXPOSE 8000
+# Collect static files
+RUN python manage.py collectstatic --noinput
 
-# Run the startup script
-CMD ["/app/start.sh"]
+# Expose port
+EXPOSE 8080
+
+# Run Gunicorn
+CMD ["python", "-m", "gunicorn.app.wsgiapp", "main.wsgi:application", "--bind=0.0.0.0:8080"]

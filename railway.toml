@@ -1,0 +1,10 @@
+[build]
+builder = "NIXPACKS"
+nixpacksConfigPath = "nixpacks.toml"
+
+[deploy]
+startCommand = "DJANGO_SETTINGS_MODULE=main.settings gunicorn --bind=0.0.0.0:8080 main.wsgi:application"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+numReplicas = 1
