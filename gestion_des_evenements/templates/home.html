@@ -150,15 +150,7 @@
       <div class="event-item">
         <div class="event-card">
           <div class="event-image">
-            {% if event.image %}
-              <img 
-                src="{{ event.image.url }}" 
-                alt="{{ event.nom_event }}" 
-                class="event-img"
-              />
-            {% else %}
-              <img src="{% static 'images/event_web.jpg' %}" alt="{{ event.nom_event }}" />
-            {% endif %}
+            <img src="{{ event.get_image_url }}" alt="{{ event.nom_event }}" class="event-img" />
           </div>
           
           <div class="event-date">

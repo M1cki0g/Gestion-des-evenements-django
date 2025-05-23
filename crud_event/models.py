@@ -42,6 +42,28 @@ class evenement(models.Model):
     categorie = models.CharField(max_length=200)
     description = models.TextField(max_length=2000 , blank=True, null=True)
     organisateur = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    
+    def get_image_url(self):
+        """Return a valid image URL, using default if none available"""
+        # Liste d'images par défaut pour chaque catégorie
+        default_images = {
+            'Musique': 'https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/music_event.jpg',
+            'Sport': 'https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/sport_event.jpg',
+            'Technologie': 'https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/tech_event.jpg',
+            'Art': 'https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/art_event.jpg',
+            'default': 'https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/event_web.jpg'
+        }
+        
+        # Essayer d'utiliser l'image téléchargée
+        if self.image and hasattr(self.image, 'url'):
+            try:
+                # Vérifier si l'URL de l'image est accessible
+                return self.image.url
+            except Exception:
+                pass
+        
+        # Utiliser une image par défaut basée sur la catégorie
+        return default_images.get(self.categorie, default_images['default'])
     organisateur_name = models.CharField(max_length=200, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=2.00)
     is_validated = models.BooleanField(default=False)

@@ -43,17 +43,11 @@
                         <tr class="align-middle animate-row">
                             <td>{{ event.id }}</td>
                             <td>
-                                {% if event.image %}
                                 <img 
-                                    src="{{ event.image.url }}" 
+                                    src="{{ event.get_image_url }}" 
                                     alt="{{ event.nom_event }}" 
                                     class="event-thumbnail"
                                 >
-                                {% else %}
-                                <div class="event-thumbnail-placeholder">
-                                    <i class="fas fa-image"></i>
-                                </div>
-                                {% endif %}
                             </td>
                             <td>
                                 <div class="fw-bold">{{ event.nom_event }}</div>

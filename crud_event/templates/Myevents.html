@@ -33,9 +33,9 @@
                 <div class="event-card">
                     <div class="event-image">
                         {% if event.image %}
-                        <!-- Prioritize the user's image with improved error handling -->
+                        <!-- Use get_image_url method which always provides a valid image URL -->
                         <img 
-                            src="{{ event.image.url }}" 
+                            src="{{ event.get_image_url }}" 
                             alt="{{ event.nom_event }}" 
                             onerror="console.log('Using fallback for: '+this.alt); this.src='https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/event_web.jpg'"
                         />
