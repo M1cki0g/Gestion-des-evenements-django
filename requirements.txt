@@ -14,3 +14,6 @@ gunicorn==20.0.4  # Added back for Railway compatibility
 
 # PDF generation
 reportlab==3.6.1
+
+# QR Code generation
+qrcode==7.3.1
