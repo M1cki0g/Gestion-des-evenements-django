@@ -6,10 +6,12 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including PostgreSQL development headers
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
+    libpq-dev \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
