@@ -34,8 +34,8 @@ class evenement(models.Model):
     id = models.AutoField(primary_key=True)
     nom_event = models.CharField(max_length=200)
     image = models.ImageField(upload_to=file_path, blank=True, null=True)
-    # Suppression temporaire de image_url pour résoudre l'erreur en production
-    # image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Optional external image URL")
+    # Réactivation du champ image_url comme solution de contournement pour Railway
+    image_url = models.URLField(max_length=500, blank=True, null=True, help_text="URL d'image externe (alternative au téléchargement)")
     date = models.DateTimeField()
     lieu = models.CharField(max_length=200)
     nombre_places = models.IntegerField(default=2)
@@ -59,13 +59,15 @@ class evenement(models.Model):
         
         # Log de débogage pour comprendre ce qui se passe
         logger.info(f"get_image_url called for event {self.id}: {self.nom_event}")
+        
+        # 1. Priorité 1: Vérifier si une URL d'image externe a été fournie
+        if hasattr(self, 'image_url') and self.image_url:
+            logger.info(f"Using external image URL: {self.image_url}")
+            return self.image_url
+        
+        # 2. Priorité 2: Essayer d'utiliser l'image téléchargée
         if self.image:
             logger.info(f"Event has image attribute: {self.image}")
-        else:
-            logger.info("Event has no image attribute set")
-            
-        # Essayer d'utiliser l'image téléchargée
-        if self.image:
             try:
                 # Vérifier si l'attribut name existe
                 if hasattr(self.image, 'name'):
@@ -82,6 +84,8 @@ class evenement(models.Model):
                 logger.error(f"Exception when accessing image.url: {str(e)}")
                 import traceback
                 logger.error(traceback.format_exc())
+        else:
+            logger.info("Event has no image attribute set")
         
         # Vérifier la configuration S3
         try:
@@ -94,7 +98,7 @@ class evenement(models.Model):
         except Exception as e:
             logger.error(f"Error checking S3 settings: {str(e)}")
         
-        # Utiliser une image par défaut basée sur la catégorie
+        # 3. Priorité 3: Utiliser une image par défaut basée sur la catégorie
         default_url = default_images.get(self.categorie, default_images['default'])
         logger.info(f"Using default image: {default_url}")
         return default_url
@@ -191,10 +195,17 @@ class EvenementForm(forms.ModelForm):
         help_text="Image de l'événement (optionnel)"
     )
     
+    # Ajouter un champ image_url comme alternative au téléchargement d'image
+    image_url = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://exemple.com/image.jpg'}),
+        help_text="Alternative: URL d'une image en ligne (laissez vide pour utiliser le téléchargement ou une image par défaut)"
+    )
+    
     class Meta:
         model = evenement
-        # Exclude image_url since it's not in the database yet
-        fields = ['nom_event', 'image', 'date', 'lieu', 'nombre_places', 'categorie', 'description', 'price']
+        # Inclure image_url dans les champs du formulaire
+        fields = ['nom_event', 'image', 'image_url', 'date', 'lieu', 'nombre_places', 'categorie', 'description', 'price']
         widgets = {
             'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'nombre_places': forms.NumberInput(attrs={'min': '2', 'class': 'form-control'}),
