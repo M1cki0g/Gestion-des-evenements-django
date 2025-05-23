@@ -45,6 +45,9 @@ class evenement(models.Model):
     
     def get_image_url(self):
         """Return a valid image URL, using default if none available"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         # Liste d'images par défaut pour chaque catégorie
         default_images = {
             'Musique': 'https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/music_event.jpg',
@@ -54,16 +57,47 @@ class evenement(models.Model):
             'default': 'https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/event_web.jpg'
         }
         
+        # Log de débogage pour comprendre ce qui se passe
+        logger.info(f"get_image_url called for event {self.id}: {self.nom_event}")
+        if self.image:
+            logger.info(f"Event has image attribute: {self.image}")
+        else:
+            logger.info("Event has no image attribute set")
+            
         # Essayer d'utiliser l'image téléchargée
-        if self.image and hasattr(self.image, 'url'):
+        if self.image:
             try:
-                # Vérifier si l'URL de l'image est accessible
-                return self.image.url
-            except Exception:
-                pass
+                # Vérifier si l'attribut name existe
+                if hasattr(self.image, 'name'):
+                    logger.info(f"Image name: {self.image.name}")
+                
+                # Vérifier si l'attribut url existe
+                if hasattr(self.image, 'url'):
+                    image_url = self.image.url
+                    logger.info(f"Image URL: {image_url}")
+                    return image_url
+                else:
+                    logger.warning("Image object has no 'url' attribute")
+            except Exception as e:
+                logger.error(f"Exception when accessing image.url: {str(e)}")
+                import traceback
+                logger.error(traceback.format_exc())
+        
+        # Vérifier la configuration S3
+        try:
+            from django.conf import settings
+            if hasattr(settings, 'USE_S3') and settings.USE_S3:
+                logger.info(f"S3 is enabled, bucket: {settings.AWS_STORAGE_BUCKET_NAME}")
+                logger.info(f"Media URL from settings: {settings.MEDIA_URL}")
+            else:
+                logger.info("S3 is not enabled in settings")
+        except Exception as e:
+            logger.error(f"Error checking S3 settings: {str(e)}")
         
         # Utiliser une image par défaut basée sur la catégorie
-        return default_images.get(self.categorie, default_images['default'])
+        default_url = default_images.get(self.categorie, default_images['default'])
+        logger.info(f"Using default image: {default_url}")
+        return default_url
     organisateur_name = models.CharField(max_length=200, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=2.00)
     is_validated = models.BooleanField(default=False)

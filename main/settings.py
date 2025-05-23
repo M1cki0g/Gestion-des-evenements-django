@@ -125,11 +125,11 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# S3 Storage settings - simplified to always use S3 in production
+# S3 Storage settings - always use S3 in production regardless of DEBUG setting
 USE_S3 = os.getenv('USE_S3', 'True') == 'True'
 
-if not DEBUG and USE_S3:
-    # S3 Storage settings
+if USE_S3:
+    # Configure S3 for media storage to ensure persistence
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', 'your-access-key')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', 'your-secret-key')
@@ -137,13 +137,31 @@ if not DEBUG and USE_S3:
     AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'eu-west-1')
     AWS_S3_FILE_OVERWRITE = False
     AWS_DEFAULT_ACL = 'public-read'
+    AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com')
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
     AWS_LOCATION = 'media'
-    AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com')
+    
+    # Override MEDIA_URL to use S3
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
-    print(f"Using S3 storage with bucket: {AWS_STORAGE_BUCKET_NAME}")
+    
+    # Enable detailed logging for S3 operations
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"S3 storage enabled with bucket: {AWS_STORAGE_BUCKET_NAME}")
+    logger.info(f"S3 region: {AWS_S3_REGION_NAME}")
+    logger.info(f"Media URL: {MEDIA_URL}")
+    
+    # Log a warning if S3 credentials seem to be defaults
+    if AWS_ACCESS_KEY_ID == 'your-access-key' or AWS_SECRET_ACCESS_KEY == 'your-secret-key':
+        logger.warning("WARNING: Using default S3 credentials. Media storage will not work properly!")
+        print("WARNING: Using default S3 credentials. Configure AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.")
+    else:
+        print(f"S3 media storage configured with bucket: {AWS_STORAGE_BUCKET_NAME}")
+else:
+    print("Using local file storage for media. Files will not persist in Railway environment.")
+    logging.getLogger(__name__).warning("Local file storage in use - uploaded files will not persist in Railway!")
 
 
 # Other settings
