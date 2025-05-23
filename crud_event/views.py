@@ -46,7 +46,6 @@ def creer_evenement(request):
         logger.info(f"POST data: {request.POST}")
         logger.info(f"FILES data: {request.FILES}")
         
-        # Skip file upload temporarily to see if that's the issue
         form = EvenementForm(request.POST, request.FILES)
         
         if form.is_valid():
@@ -57,69 +56,65 @@ def creer_evenement(request):
                 event.organisateur = request.user
                 event.organisateur_name = request.user.username
                 
-                # Handle image upload safely
-                if 'image' in request.FILES:
-                    # Make sure the upload directory exists
-                    from django.conf import settings
-                    import os
-                    upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
-                    os.makedirs(upload_dir, exist_ok=True)
-                    logger.info(f"Upload directory created at {upload_dir}")
-                    
-                    # Process the image separately
-                    image_file = request.FILES['image']
-                    logger.info(f"Processing image: {image_file.name}, size: {image_file.size}")
-                    
-                    # Set image to None initially and we'll handle it after saving
-                    # This helps avoid DB errors
-                    temp_image = image_file
-                    event.image = None
+                # Vérifier si une URL d'image externe a été fournie
+                image_url = form.cleaned_data.get('image_url')
+                if image_url:
+                    logger.info(f"External image URL provided: {image_url}")
+                    event.image_url = image_url
+                    # Si une URL d'image est fournie, on peut directement sauvegarder l'événement
+                    event.save()
+                    logger.info(f"Event created with ID: {event.id} and external image URL")
                 else:
-                    logger.info("No image uploaded with the event")
-                    temp_image = None
+                    # Handle image upload safely if no external URL was provided
+                    if 'image' in request.FILES:
+                        logger.info("Processing uploaded image")
+                        
+                        # Aucune raison de définir image=None comme avant
+                        # Laissons Django gérer directement l'image téléchargée
+                        event.image = request.FILES['image']
+                        logger.info(f"Image assigned: {event.image.name}")
+                        
+                        # Auto-validate if the user is admin/staff
+                        event.is_validated = True if request.user.is_staff else False
+                        
+                        # Sauvegarder l'événement avec l'image
+                        event.save()
+                        logger.info(f"Event created with ID: {event.id} and uploaded image")
+                    else:
+                        # Ni image ni URL d'image fournie
+                        logger.info("No image or image URL provided")
+                        
+                        # Auto-validate if the user is admin/staff
+                        event.is_validated = True if request.user.is_staff else False
+                        
+                        # Sauvegarder l'événement sans image
+                        event.save()
+                        logger.info(f"Event created with ID: {event.id} without image")
                 
-                # Auto-validate if the user is admin/staff
-                event.is_validated = True if request.user.is_staff else False
+                # Après sauvegarde, vérifier que tout s'est bien passé
+                from crud_event.models import evenement
+                saved_event = evenement.objects.get(id=event.id)
                 
-                # Save without the image first
-                logger.info("Saving event without image first")
-                event.save()
-                logger.info(f"Event created with ID: {event.id}")
+                # Journalisation des détails de l'événement sauvegardé
+                if hasattr(saved_event, 'image') and saved_event.image:
+                    logger.info(f"Saved event has image: {saved_event.image.name}")
+                    if hasattr(saved_event.image, 'url'):
+                        logger.info(f"Image URL: {saved_event.image.url}")
                 
-                # Now try to add the image if we have one
-                if temp_image:
-                    try:
-                        logger.info("Attempting to save image")
-                        # Try a more direct approach for image saving
-                        from django.core.files.storage import default_storage
-                        from django.core.files.base import ContentFile
-                        import os
-                        from django.conf import settings
-                        
-                        # Make sure uploads directory exists
-                        upload_path = os.path.join(settings.MEDIA_ROOT, 'uploads')
-                        os.makedirs(upload_path, exist_ok=True)
-                        
-                        # Create a file name based on time and original filename
-                        from datetime import datetime
-                        time_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                        safe_filename = f"{time_str}_{temp_image.name}"
-                        file_path = os.path.join('uploads', safe_filename)
-                        
-                        # Save the file using Django's storage system
-                        path = default_storage.save(file_path, ContentFile(temp_image.read()))
-                        logger.info(f"Image saved at: {path}")
-                        
-                        # Update the event with the new image path
-                        from crud_event.models import evenement
-                        updated_event = evenement.objects.get(id=event.id)
-                        updated_event.image = path
-                        updated_event.save()
-                        logger.info("Event updated with image path")
-                    except Exception as img_error:
-                        logger.error(f"Error saving image: {img_error}")
-                        logger.exception("Full image error traceback:")
-                        # Continue anyway since the event is created
+                if hasattr(saved_event, 'image_url') and saved_event.image_url:
+                    logger.info(f"Saved event has image_url: {saved_event.image_url}")
+                
+                # Test de get_image_url pour voir ce qui est retourné
+                logger.info(f"get_image_url returns: {saved_event.get_image_url()}")
+                
+                # Vérifier les paramètres de stockage
+                from django.conf import settings
+                if hasattr(settings, 'DEFAULT_FILE_STORAGE'):
+                    logger.info(f"Using storage: {settings.DEFAULT_FILE_STORAGE}")
+                if hasattr(settings, 'MEDIA_ROOT'):
+                    logger.info(f"Media root: {settings.MEDIA_ROOT}")
+                if hasattr(settings, 'MEDIA_URL'):
+                    logger.info(f"Media URL: {settings.MEDIA_URL}")
                 
                 # Success message
                 if request.user.is_staff:
