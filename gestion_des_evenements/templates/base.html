@@ -300,6 +300,17 @@
             navbar.style.padding = '1rem 0';
           }
         });
+        
+        // Gestion des images - fallback automatique vers l'image par défaut
+        var defaultImageUrl = "{% static 'images/event_web.jpg' %}";
+        var eventImages = document.querySelectorAll('img.event-img, .event-thumbnail');
+        
+        eventImages.forEach(function(img) {
+          img.addEventListener('error', function() {
+            console.log('Image error detected for:', this.alt);
+            this.src = defaultImageUrl;
+          });
+        });
       });
     </script>
   </body>
