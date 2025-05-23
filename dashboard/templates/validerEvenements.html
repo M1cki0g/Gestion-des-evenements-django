@@ -36,7 +36,7 @@
                                 <td>
                                     {% if event.image %}
                                         <img 
-                                            src="{{ event.image.url }}" 
+                                            src="{{ event.get_image_url }}" 
                                             alt="{{ event.nom_event }}" 
                                             class="event-thumbnail"
                                         >
