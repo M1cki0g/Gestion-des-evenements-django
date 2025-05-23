@@ -39,23 +39,36 @@ def creer_evenement(request):
     if request.method == 'POST':
         form = EvenementForm(request.POST, request.FILES)
         if form.is_valid():
-            event = form.save(commit=False)
-            event.organisateur = request.user
-            event.fullname = request.user.username
-
-            # Auto-valider si l'utilisateur est admin/staff
-            event.is_validated = True if request.user.is_staff else False
-            event.save()
-
-            # Message de succès
-            if request.user.is_staff:
-                messages.success(request, "Votre événement a été créé avec succès.")
-            else:
-                messages.success(request, "Votre événement a été créé avec succès, en attente de validation par l'administrateur.")
-
-            return redirect('creerEvent')
+            try:
+                event = form.save(commit=False)
+                event.organisateur = request.user
+                event.organisateur_name = request.user.username
+                
+                # Gestion de l'image
+                if 'image' in request.FILES:
+                    # Assurez-vous que le répertoire existe
+                    from django.conf import settings
+                    import os
+                    upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
+                    os.makedirs(upload_dir, exist_ok=True)
+                
+                # Auto-valider si l'utilisateur est admin/staff
+                event.is_validated = True if request.user.is_staff else False
+                event.save()
+                
+                # Message de succès
+                if request.user.is_staff:
+                    messages.success(request, "Votre événement a été créé avec succès.")
+                else:
+                    messages.success(request, "Votre événement a été créé avec succès, en attente de validation par l'administrateur.")
+                
+                return redirect('creerEvent')
+            except Exception as e:
+                print(f"Erreur lors de la création de l'événement: {e}")
+                messages.error(request, f"Une erreur s'est produite: {e}")
         else:
-            messages.error(request, "Données invalides")
+            print(f"Formulaire non valide: {form.errors}")
+            messages.error(request, f"Données invalides: {form.errors}")
     else:
         form = EvenementForm()
 

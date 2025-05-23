@@ -13,6 +13,10 @@ def file_path(instance, filename):
     timenow = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     # Safe filename creation
     filename = f"{timenow}_{filename}"
+    # Ensure uploads directory exists
+    upload_dir = os.path.join('media', 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+    # Return just the path relative to MEDIA_ROOT
     return os.path.join('uploads', filename)
 
 # class personne(models.Model):
@@ -29,7 +33,8 @@ def file_path(instance, filename):
 class evenement(models.Model):
     id = models.AutoField(primary_key=True)
     nom_event = models.CharField(max_length=200)
-    image = models.ImageField(upload_to=file_path, blank=True, null=True,default='media/ibm.jpg')
+    image = models.ImageField(upload_to=file_path, blank=True, null=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True, help_text="Optional external image URL")
     date = models.DateTimeField()
     lieu = models.CharField(max_length=200)
     nombre_places = models.IntegerField(default=2)
