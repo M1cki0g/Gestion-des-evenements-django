@@ -11,3 +11,6 @@ psycopg2==2.8.6
 # Servers
 waitress==2.1.2
 gunicorn==20.0.4  # Added back for Railway compatibility
+
+# UI and extensions
+django-simpleui==2022.12.22
