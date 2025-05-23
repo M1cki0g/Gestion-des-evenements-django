@@ -65,15 +65,28 @@ except Exception as e:
     logger.error(traceback.format_exc())
     sys.exit(1)
 
-# Run migrations if needed
+# Create and run migrations if needed
 try:
+    logger.info("Making database migrations...")
+    execute_from_command_line(["manage.py", "makemigrations", "--noinput"])
+    logger.info("Generated new migrations")
+    
     logger.info("Applying database migrations...")
     execute_from_command_line(["manage.py", "migrate", "--noinput"])
     logger.info("Database migrations complete")
 except Exception as e:
-    logger.error(f"Error applying migrations: {e}")
+    logger.error(f"Error with migrations: {e}")
     logger.error(traceback.format_exc())
     # Continue despite migration errors
+    
+    # Fallback: Try only running migrations without making them
+    try:
+        logger.info("Fallback: Trying to apply existing migrations only...")
+        execute_from_command_line(["manage.py", "migrate", "--noinput"])
+        logger.info("Applied existing migrations")
+    except Exception as e2:
+        logger.error(f"Error applying existing migrations: {e2}")
+        logger.error(traceback.format_exc())
 
 # Create default superuser if needed
 try:
@@ -95,39 +108,13 @@ except Exception as e:
     logger.error(traceback.format_exc())
     # Continue despite static file errors
 
-# Create media directory with special handling for Railway's ephemeral filesystem
+# Create media directory - simplified approach without symlinks
 try:
     from django.conf import settings
     # Ensure media directory exists
     os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+    os.makedirs(os.path.join(settings.MEDIA_ROOT, 'uploads'), exist_ok=True)
     logger.info(f"Created media directory at {settings.MEDIA_ROOT}")
-    
-    # Create a directory in /tmp which persists during the current session
-    persistent_media_dir = '/tmp/toul_events_media'
-    os.makedirs(persistent_media_dir, exist_ok=True)
-    
-    # Create symlink from media directory to persistent directory for each subdirectory
-    # This helps preserve uploaded files during the session
-    for item in ['uploads']:
-        source_dir = os.path.join(settings.MEDIA_ROOT, item)
-        target_dir = os.path.join(persistent_media_dir, item)
-        
-        # Create subdirectories if they don't exist
-        os.makedirs(target_dir, exist_ok=True)
-        
-        # If the source exists but is not a symlink, back it up
-        if os.path.exists(source_dir) and not os.path.islink(source_dir):
-            backup_dir = f"{source_dir}_backup_{int(time.time())}"
-            os.rename(source_dir, backup_dir)
-            logger.info(f"Backed up {source_dir} to {backup_dir}")
-        
-        # Remove existing symlink if any
-        if os.path.islink(source_dir):
-            os.unlink(source_dir)
-        
-        # Create symlink from media/uploads to persistent directory
-        os.symlink(target_dir, source_dir)
-        logger.info(f"Created symlink from {source_dir} to {target_dir}")
     
     # Ensure the media directory is writable
     test_file = os.path.join(settings.MEDIA_ROOT, 'test.txt')
@@ -136,11 +123,6 @@ try:
     os.remove(test_file)
     logger.info("Media directory is writable")
     
-    # Print out all files in the persistent media directory
-    for root, dirs, files in os.walk(persistent_media_dir):
-        for file in files:
-            logger.info(f"Found file: {os.path.join(root, file)}")
-            
 except Exception as e:
     logger.error(f"Error setting up media directory: {e}")
     logger.error(traceback.format_exc())
