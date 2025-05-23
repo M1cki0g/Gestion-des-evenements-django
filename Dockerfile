@@ -30,7 +30,7 @@ echo "Starting application..."\n\
 echo "Collecting static files..."\n\
 COLLECTSTATIC_DRYRUN=1 python manage.py collectstatic --noinput || true\n\
 echo "Starting Gunicorn..."\n\
-exec gunicorn main.wsgi:application --bind=0.0.0.0:8080 --log-file=-' > /app/entrypoint.sh \
+exec gunicorn wsgi:application --bind=0.0.0.0:8080 --log-file=-' > /app/entrypoint.sh \
     && chmod +x /app/entrypoint.sh
 
 # Expose port
