@@ -74,6 +74,16 @@ except Exception as e:
     logger.error(traceback.format_exc())
     # Continue despite migration errors
 
+# Create default superuser if needed
+try:
+    logger.info("Creating default superuser if needed...")
+    execute_from_command_line(["manage.py", "create_default_superuser"])
+    logger.info("Superuser check complete")
+except Exception as e:
+    logger.error(f"Error creating superuser: {e}")
+    logger.error(traceback.format_exc())
+    # Continue despite superuser creation errors
+
 # Collect static files
 try:
     logger.info("Collecting static files...")
