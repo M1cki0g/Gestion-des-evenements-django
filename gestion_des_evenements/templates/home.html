@@ -150,11 +150,11 @@
       <div class="event-item">
         <div class="event-card">
           <div class="event-image">
-            {% if event.image and event.image.url %}
-            <img src="{{ event.image.url }}" alt="{{ event.nom_event }}" />
-            {% else %}
-            <img src="{% static 'images/event_default.jpg' %}" alt="{{ event.nom_event }}" onerror="this.src='{% static 'images/event_web.jpg' %}'" />
-            {% endif %}
+            <img 
+              src="{% if event.image %}{{ event.image.url }}{% else %}{% static 'images/event_default.jpg' %}{% endif %}" 
+              alt="{{ event.nom_event }}" 
+              onerror="this.src='https://raw.githubusercontent.com/M1cki0g/Gestion-des-evenements-django/master/gestion_des_evenements/static/images/event_web.jpg'" 
+            />
           </div>
           
           <div class="event-date">
