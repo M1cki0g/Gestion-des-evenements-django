@@ -21,14 +21,18 @@ RUN /usr/local/bin/python -m pip install --upgrade pip setuptools wheel
 COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
-# Copy project
+# Create startup script
+RUN echo '#!/bin/bash\npython manage.py collectstatic --noinput\ngunicorn main.wsgi:application --bind 0.0.0.0:8000' > /app/start.sh \
+    && chmod +x /app/start.sh
+
+# Copy project (after creating startup script)
 COPY . /app/
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Create static files directory
+RUN mkdir -p /app/staticfiles
 
 # Expose port
 EXPOSE 8000
 
-# Run server
-CMD ["gunicorn", "main.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Run the startup script
+CMD ["/app/start.sh"]
