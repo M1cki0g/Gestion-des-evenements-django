@@ -29,11 +29,13 @@ def user_login(request):
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                if user.is_superuser:
-                    return redirect(reverse('home'))
-                else:
                     login(request, user)
-                    return redirect('home')
+                    
+                    if user.is_superuser:
+                        return redirect(reverse('home'))
+                    else:
+                        login(request, user)
+                        return redirect('home')
         
         # Afficher l'erreur ici directement, peu importe la raison
         messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
